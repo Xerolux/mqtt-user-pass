@@ -1,3 +1,10 @@
+"""
+This module provides a command-line interface for managing MQTT user credentials. It supports
+adding, deleting, and displaying user credentials securely stored with hashed passwords. The
+tool utilizes PBKDF2 with SHA-512 for password hashing, ensuring a high level of security for
+stored credentials.
+"""
+
 import getpass
 import re  # For regex pattern matching
 from passlib.hash import pbkdf2_sha512
@@ -48,8 +55,9 @@ def write_credentials_to_file(username, hashed_password, filename="mqtt_user_cre
     Returns:
     - True if writing succeeded, False otherwise (e.g., if username already exists).
     """
+    exists_msg = f"Error: Username '{username}' already exists. Please use a different username."
     if username_exists(username, filename):
-        print(f"Error: Username '{username}' already exists. Please use a different username.")
+        print(exists_msg)
         return False
     with open(filename, "a", encoding="utf-8") as file:
         file.write(f"{username}:{hashed_password}\n")
@@ -66,8 +74,8 @@ def validate_password(password):
     Returns:
     - True if the password meets the requirements, False otherwise.
     """
-    if (8 <= len(password) <= 16 and re.search("[a-zA-Z]", password) 
-            and re.search("[0-9]", password)):
+    if (8 <= len(password) <= 16 and re.search("[a-zA-Z]", password) and
+        re.search("[0-9]", password)):
         return True
     return False
 
@@ -121,8 +129,7 @@ def delete_user_from_file(username, filename="mqtt_user_credentials.txt"):
 
     if user_found:
         with open(filename, "w", encoding="utf-8") as file:
-            for credential in updated_credentials:
-                file.write(credential)
+            file.writelines(updated_credentials)
         print(f"User '{username}' has been removed from '{filename}'.")
     else:
         print(f"User '{username}' not found in '{filename}'.")
