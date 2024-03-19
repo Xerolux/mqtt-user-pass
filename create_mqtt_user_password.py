@@ -1,4 +1,3 @@
-
 from passlib.hash import pbkdf2_sha512
 import getpass
 import re  # For regex pattern matching
@@ -63,6 +62,7 @@ def main_menu():
             show_all_users()
         elif choice == '5':
             print("Exiting MQTT User Credentials Manager.")
+            print("\033[31mPlease restart your MQTT broker for changes to take effect.\033[0m")
             break
         else:
             print("Invalid choice, please enter a number between 1 and 5.")
