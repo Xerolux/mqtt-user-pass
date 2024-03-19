@@ -8,10 +8,22 @@ def create_mqtt_user_password(password):
     hashed_password = pbkdf2_sha512.using(salt_size=salt_size, rounds=iterations).hash(password)
     return hashed_password
 
+def username_exists(username, filename="mqtt_user_credentials.txt"):
+    with open(filename, "r") as file:
+        for line in file:
+            stored_username, _ = line.strip().split(":", 1)
+            if stored_username == username:
+                return True
+    return False
+
 def write_credentials_to_file(username, hashed_password, filename="mqtt_user_credentials.txt"):
+    if username_exists(username, filename):
+        print(f"Error: Username '{username}' already exists. Please use a different username.")
+        return False
     with open(filename, "a") as file:
         file.write(f"{username}:{hashed_password}\n")
     print(f"Credentials for '{username}' added to '{filename}'.")
+    return True
 
 def delete_user_from_file(username, filename="mqtt_user_credentials.txt"):
     updated_credentials = []
@@ -61,9 +73,12 @@ def main_menu():
 
         if choice == '1':
             username = input("Enter MQTT username: ")
-            password = getpass.getpass("Enter password (input will be hidden): ")
-            hashed_password = create_mqtt_user_password(password)
-            write_credentials_to_file(username, hashed_password)
+            if not username_exists(username):
+                password = getpass.getpass("Enter password (input will be hidden): ")
+                hashed_password = create_mqtt_user_password(password)
+                write_credentials_to_file(username, hashed_password)
+            else:
+                print(f"Username '{username}' already exists. Please choose a different username.")
         elif choice == '2':
             username = input("Enter MQTT username to delete: ")
             delete_user_from_file(username)
@@ -80,3 +95,4 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
+
