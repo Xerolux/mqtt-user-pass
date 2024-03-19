@@ -1,5 +1,7 @@
+
 from passlib.hash import pbkdf2_sha512
 import getpass
+import re  # For regex pattern matching
 
 def create_mqtt_user_password(password):
     salt_size = 16
@@ -25,41 +27,10 @@ def write_credentials_to_file(username, hashed_password, filename="mqtt_user_cre
     print(f"Credentials for '{username}' added to '{filename}'.")
     return True
 
-def delete_user_from_file(username, filename="mqtt_user_credentials.txt"):
-    updated_credentials = []
-    user_found = False
-
-    with open(filename, "r") as file:
-        for line in file:
-            stored_username, _ = line.strip().split(":", 1)
-            if stored_username != username:
-                updated_credentials.append(line)
-            else:
-                user_found = True
-
-    if user_found:
-        with open(filename, "w") as file:
-            for credential in updated_credentials:
-                file.write(credential)
-        print(f"User '{username}' has been removed from '{filename}'.")
-    else:
-        print(f"User '{username}' not found in '{filename}'.")
-
-def show_user_credentials(username, filename="mqtt_user_credentials.txt"):
-    with open(filename, "r") as file:
-        for line in file:
-            stored_username, hashed_password = line.strip().split(":", 1)
-            if stored_username == username:
-                print(f"User '{username}' found. Hashed password: {hashed_password}")
-                return
-    print(f"User '{username}' not found in '{filename}'.")
-
-def show_all_users(filename="mqtt_user_credentials.txt"):
-    print("Listing all users:")
-    with open(filename, "r") as file:
-        for line in file:
-            username, _ = line.strip().split(":", 1)
-            print(username)
+def validate_password(password):
+    if 8 <= len(password) <= 16 and re.search("[a-zA-Z]", password) and re.search("[0-9]", password):
+        return True
+    return False
 
 def main_menu():
     while True:
@@ -75,8 +46,11 @@ def main_menu():
             username = input("Enter MQTT username: ")
             if not username_exists(username):
                 password = getpass.getpass("Enter password (input will be hidden): ")
-                hashed_password = create_mqtt_user_password(password)
-                write_credentials_to_file(username, hashed_password)
+                if validate_password(password):
+                    hashed_password = create_mqtt_user_password(password)
+                    write_credentials_to_file(username, hashed_password)
+                else:
+                    print("Password must be 8-16 characters long and contain both numbers and letters.")
             else:
                 print(f"Username '{username}' already exists. Please choose a different username.")
         elif choice == '2':
@@ -95,4 +69,3 @@ def main_menu():
 
 if __name__ == "__main__":
     main_menu()
-
