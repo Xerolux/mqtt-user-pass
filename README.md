@@ -1,4 +1,4 @@
-# flashmq-user-pass
+# mqtt-user-pass
 
 """
 This module provides a command-line interface for managing MQTT user credentials. It supports
